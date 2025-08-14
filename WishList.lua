@@ -1,8 +1,12 @@
 -- WishList.lua
 
 local eventFrame = CreateFrame("Frame")
+WishListDB = WishListDB or {}
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:SetScript("OnEvent", function(self, event, ...)
+    -- Инициализация базы данных при загрузке аддона
+    WishListDB = WishListDB or {}
+    WishListDB.gearLists = WishListDB.gearLists or {}
     PrintRed("WishList Addon loaded. Version: " .. (WISHLIST_VERSION or "unknown"))
 end)
 
@@ -35,7 +39,6 @@ if LDB and LDBIcon then
     })
 
     -- SavedVariables for minimap icon position
-    WishListDB = WishListDB or {}
     if not WishListDB.minimap then WishListDB.minimap = {} end
 
     LDBIcon:Register("WishList", dataobj, WishListDB.minimap)

@@ -19,12 +19,6 @@ function WishList_ToggleMainFrame()
         WishListFrame:SetScript("OnDragStart", function(self) self:StartMoving() end)
         WishListFrame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
 
-        -- Ensure the main window is above all when focused
-        WishListFrame:SetFrameStrata("DIALOG")
-        WishListFrame:SetScript("OnMouseDown", function(self)
-            self:Raise()
-        end)
-
         -- Player nickname above model
         local playerName = UnitName("player")
         local nameFont = WishListFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -106,11 +100,28 @@ function WishList_ToggleSettingsFrame()
         WishListSettingsFrame:SetScript("OnDragStart", function(self) self:StartMoving() end)
         WishListSettingsFrame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
 
-        -- Ensure the main window is above all when focused
-        WishListSettingsFrame:SetFrameStrata("DIALOG")
-        WishListSettingsFrame:SetScript("OnMouseDown", function(self)
-            self:Raise()
-        end)
+        -- Add import text box and button lower in the settings window
+        if not WishListSettingsFrame.importBox then
+            local importBox = CreateFrame("EditBox", nil, WishListSettingsFrame, "InputBoxTemplate")
+            importBox:SetSize(300, 400)
+            importBox:SetPoint("TOP", WishListSettingsFrame, "TOP", 0, -120)
+            importBox:SetMultiLine(true)
+            importBox:SetAutoFocus(false)
+            importBox:SetText("Paste JSON here")
+            WishListSettingsFrame.importBox = importBox
+
+            local importBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
+            importBtn:SetSize(100, 28)
+            importBtn:SetPoint("TOP", importBox, "BOTTOM", 0, -8)
+            importBtn:SetText("Import")
+            importBtn:SetScript("OnClick", function()
+                local text = importBox:GetText()
+                -- TODO: handle import logic here
+                print("|cff00ff00[WishList]|r Importing from text:", text)
+                WishListImportFromJSON(text)
+            end)
+            WishListSettingsFrame.importBtn = importBtn
+        end
     end
     if WishListSettingsFrame:IsShown() then
         WishListSettingsFrame:Hide()

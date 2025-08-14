@@ -1,7 +1,7 @@
 ## Title: WishList
 
 ## Interface: 100205
-## Version: 0.0.1
+## Version: 1.0.0
 
 ## Notes: WishList addon for consul loot destribution
 ## Author: DenBedilov
@@ -9,6 +9,7 @@
 lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
 lib\LibDBIcon-1.0\LibDBIcon-1.0.lua
 lib\LibStub\LibStub.lua
+lib\json.lua
 
 WishList.lua
 WishListLogic.lua

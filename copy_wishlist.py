@@ -19,5 +19,5 @@ if os.path.exists(DST):
     print('Destination exists, removing...')
     shutil.rmtree(DST)
 
-shutil.copytree(SRC, DST)
+shutil.copytree(SRC, DST, ignore=shutil.ignore_patterns(".git", ".github", ".vscode", "copy_wishlist.py"))
 print('Copy complete.')
