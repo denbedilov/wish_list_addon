@@ -11,6 +11,6 @@ lib\LibStub\LibStub.lua
 lib\json.lua
 
 WishListVersion.lua
-addon.lua
+WishList.lua
 WishListUI.lua
 WishListLogic.lua

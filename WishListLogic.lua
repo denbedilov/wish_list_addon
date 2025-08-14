@@ -8,7 +8,7 @@ function Encode(color, text)
 end
 
 function PrintRed(text)
-    print(Encode("FF8D0202", text))
+    print(Encode("FF850000", text))
 end
 
 -- Импортирует JSON-строку, валидирует и добавляет в WishListDB.gearLists

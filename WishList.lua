@@ -1,45 +1,71 @@
--- WishList.lua
+-- addon.lua
+WishListAddon = LibStub("AceAddon-3.0"):NewAddon("WishList")
 
-local eventFrame = CreateFrame("Frame")
-WishListDB = WishListDB or {}
-eventFrame:RegisterEvent("PLAYER_LOGIN")
-eventFrame:SetScript("OnEvent", function(self, event, ...)
-    -- Инициализация базы данных при загрузке аддона
-    WishListDB = WishListDB or {}
-    WishListDB.gearLists = WishListDB.gearLists or {}
-    PrintRed("WishList Addon loaded. Version: " .. (WISHLIST_VERSION or "unknown"))
-end)
+function WishListAddon:OnInitialize()
+    -- Создаём базу данных для хранения настроек
+    self.db = LibStub("AceDB-3.0"):New("WishListDB", { char = {} }, true)
 
+    -- Название и версия аддона
+    self.AddonNameAndVersion = "|cff00ff00[WishList]|r v" .. (WISHLIST_VERSION or "?.?.?")
 
+    -- Добавляем иконку на мини-карту
+    self:AddMapIcon()
 
--- Minimap icon setup using LibDataBroker and LibDBIcon
-local LDB = LibStub and LibStub("LibDataBroker-1.1", true)
-local LDBIcon = LibStub and LibStub("LibDBIcon-1.0", true)
+    print(self.AddonNameAndVersion .. " initialized.")
+end
 
-if LDB and LDBIcon then
-    local dataobj = LDB:NewDataObject("WishList", {
+function WishListAddon:AddMapIcon()
+    local LDB = LibStub("LibDataBroker-1.1", true)
+    local LDBIcon = LDB and LibStub("LibDBIcon-1.0", true)
+    if not LDB then return end
+
+    local dataObj = LDB:NewDataObject("WishListIcon", {
         type = "launcher",
         text = "WishList",
-        icon = "interface/icons/Inv_chest_cloth_challengemage_d_01.blp",
-        OnClick = function(self, button)
+        icon = "Interface\\Icons\\Inv_chest_cloth_challengemage_d_01.blp",
+        OnClick = function(_, button)
             if button == "LeftButton" then
-                -- Open player gear window
-                WishList_ToggleMainFrame()
+                WishListAddon:ToggleMainFrame()
             elseif button == "RightButton" then
-                -- Open settings window
-                WishList_ToggleSettingsFrame()
-            else
+                WishListAddon:ToggleSettingsFrame()
             end
         end,
-        OnTooltipShow = function(tooltip)
-            tooltip:AddLine("WishList v" .. (WISHLIST_VERSION or "unknown"))
-            tooltip:AddLine("Left Click to open WishList")
-            tooltip:AddLine("Right Click to open settings")
+        OnTooltipShow = function(tt)
+            tt:AddLine(WishListAddon.AddonNameAndVersion)
+            tt:AddLine("|cffffff00Left click|r to open the WishList window")
+            tt:AddLine("|cffffff00Right click|r to open addon settings")
         end,
     })
 
-    -- SavedVariables for minimap icon position
-    if not WishListDB.minimap then WishListDB.minimap = {} end
+    if LDBIcon then
+        -- Передаём таблицу настроек персонажа для хранения позиции иконки
+        LDBIcon:Register("WishListIcon", dataObj, self.db.char)
+    end
+end
 
-    LDBIcon:Register("WishList", dataobj, WishListDB.minimap)
+function WishListAddon:ToggleMainFrame()
+    if not self.MainFrame then
+        self:CreateMainFrame()
+        self.MainFrame:Show()  
+    else
+        if self.MainFrame:IsShown() then
+            self.MainFrame:Hide()
+        else
+            self.MainFrame:Show()
+        end
+    end
+end
+
+
+function WishListAddon:ToggleSettingsFrame()
+    if not self.SettingsFrame then
+        self:CreateSettingsFrame()
+        self.SettingsFrame:Show()
+    else
+        if self.SettingsFrame:IsShown() then
+            self.SettingsFrame:Hide()
+        else
+            self.SettingsFrame:Show()
+        end
+    end
 end
