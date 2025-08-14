@@ -5,6 +5,11 @@
 ## Version: 1.0.0
 ## SavedVariables: WishListDB
 
+lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
+lib\LibDBIcon-1.0\LibDBIcon-1.0.lua
+lib\LibStub\LibStub.lua
+lib\json.lua
+
 WishListVersion.lua
 addon.lua
 WishListUI.lua

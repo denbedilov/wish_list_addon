@@ -98,6 +98,29 @@ function WishListAddon:CreateSettingsFrame()
     WishListSettingsFrame:SetScript("OnDragStart", WishListSettingsFrame.StartMoving)
     WishListSettingsFrame:SetScript("OnDragStop", WishListSettingsFrame.StopMovingOrSizing)
 
+        -- Add import text box and button lower in the settings window
+        if not WishListSettingsFrame.importBox then
+            local importBox = CreateFrame("EditBox", nil, WishListSettingsFrame, "InputBoxTemplate")
+            importBox:SetSize(300, 400)
+            importBox:SetPoint("TOP", WishListSettingsFrame, "TOP", 0, -120)
+            importBox:SetMultiLine(true)
+            importBox:SetAutoFocus(false)
+            importBox:SetText("Paste JSON here")
+            WishListSettingsFrame.importBox = importBox
+
+            local importBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
+            importBtn:SetSize(100, 28)
+            importBtn:SetPoint("TOP", importBox, "BOTTOM", 0, -8)
+            importBtn:SetText("Import")
+            importBtn:SetScript("OnClick", function()
+                local text = importBox:GetText()
+                -- TODO: handle import logic here
+                print("|cff00ff00[WishList]|r Importing from text:", text)
+                WishListImportFromJSON(text)
+            end)
+            WishListSettingsFrame.importBtn = importBtn
+        end
+
     WishListSettingsFrame:SetFrameStrata("DIALOG")
     WishListSettingsFrame:SetFrameLevel(5)
 
