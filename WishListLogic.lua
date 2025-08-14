@@ -1,14 +1,9 @@
--- WishListUI.lua
--- All logic for WishList addon
+-- WishListLogic.lua
 
 function Encode(color, text)
-    return string.format("\124c%s%s\124r", color, text)
+    return string.format("|c%s%s|r", color, text)
 end
 
-function Printred(text)
+function PrintRed(text)
     print(Encode("FF8D0202", text))
 end
-
-
-
-

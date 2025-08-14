@@ -1,16 +1,11 @@
+## Interface: 11404
 ## Title: WishList
+## Notes: Simple WishList addon
+## Author: YourName
+## Version: 1.0.0
+## SavedVariables: WishListDB
 
-## Interface: 100205
-## Version: 0.0.1
-
-## Notes: WishList addon for consul loot destribution
-## Author: DenBedilov
-
-lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
-lib\LibDBIcon-1.0\LibDBIcon-1.0.lua
-lib\LibStub\LibStub.lua
-
-WishList.lua
-WishListLogic.lua
-WishListUI.lua
 WishListVersion.lua
+addon.lua
+WishListUI.lua
+WishListLogic.lua
