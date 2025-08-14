@@ -1,0 +1,18 @@
+# Временные файлы редакторов
+*.lua~
+*.bak
+*.swp
+*.swp
+*.swo
+.DS_Store
+
+# Python-файлы
+*.pyc
+__pycache__/
+
+# Игнорировать скрипт деплоя
+copy_wishlist.py
+
+# Игнорировать настройки IDE
+.vscode/
+.idea/

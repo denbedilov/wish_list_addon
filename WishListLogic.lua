@@ -1,11 +1,10 @@
--- WishListUI.lua
--- All logic for WishList addon
+-- WishListLogic.lua
 
 -- Подключение библиотеки для работы с JSON
 local json = require("lib.json")
 
 function Encode(color, text)
-    return string.format("\124c%s%s\124r", color, text)
+    return string.format("|c%s%s|r", color, text)
 end
 
 function PrintRed(text)
