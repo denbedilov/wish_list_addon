@@ -13,12 +13,9 @@ end
 
 -- Импортирует JSON-строку, валидирует и добавляет в WishListDB.gearList
 function WishListImportFromJSON(jsonText)
-    print("|cff00ff00[WishList]|r Importing from JSON:", jsonText)
-    local obj = json.decode(jsonText)
-    print("|cff00ff00[WishList]|r Importing list '", obj)
-    WishListDB = WishListDB or {}
-    WishListDB.gearList = WishListDB.gearList or {}
+    local obj = WishListClass.FromJSON(jsonText)
     WishListDB.gearList = obj
     print("|cff00ff00[WishList]|r Imported list '", WishListDB.gearList)
     return true
 end
+

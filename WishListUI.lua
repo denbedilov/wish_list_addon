@@ -98,28 +98,79 @@ function WishListAddon:CreateSettingsFrame()
     WishListSettingsFrame:SetScript("OnDragStart", WishListSettingsFrame.StartMoving)
     WishListSettingsFrame:SetScript("OnDragStop", WishListSettingsFrame.StopMovingOrSizing)
 
-        -- Add import text box and button lower in the settings window
-        if not WishListSettingsFrame.importBox then
-            local importBox = CreateFrame("EditBox", nil, WishListSettingsFrame, "InputBoxTemplate")
-            importBox:SetSize(300, 400)
-            importBox:SetPoint("TOP", WishListSettingsFrame, "TOP", 0, -120)
-            importBox:SetMultiLine(true)
-            importBox:SetAutoFocus(false)
-            importBox:SetText("Paste JSON here")
-            WishListSettingsFrame.importBox = importBox
+    if not WishListSettingsFrame.importBox then
+        -- Add a ScrollFrame to contain the EditBox
+        -- Create a background frame for visibility
+        local bg = CreateFrame("Frame", nil, WishListSettingsFrame, BackdropTemplateMixin and "BackdropTemplate")
+        bg:SetSize(310, 230)
+        bg:SetPoint("TOP", WishListSettingsFrame, "TOP", 0, -36)
+        bg:SetFrameLevel(WishListSettingsFrame:GetFrameLevel() + 1)
+        bg:SetBackdrop({
+            bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+            edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+            edgeSize = 16,
+            insets = { left = 4, right = 4, top = 4, bottom = 4 },
+        })
+        bg:SetBackdropColor(1, 1, 0.85, 0.95) -- light yellowish background
+        bg:SetBackdropBorderColor(0.8, 0.5, 0, 1) -- orange border
 
-            local importBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
-            importBtn:SetSize(100, 28)
-            importBtn:SetPoint("TOP", importBox, "BOTTOM", 0, -8)
-            importBtn:SetText("Import")
-            importBtn:SetScript("OnClick", function()
-                local text = importBox:GetText()
-                -- TODO: handle import logic here
-                print("|cff00ff00[WishList]|r Importing from text:", text)
-                WishListImportFromJSON(text)
-            end)
-            WishListSettingsFrame.importBtn = importBtn
-        end
+        local scrollFrame = CreateFrame("ScrollFrame", nil, bg, "UIPanelScrollFrameTemplate")
+        scrollFrame:SetSize(290, 210)
+        scrollFrame:SetPoint("TOPLEFT", bg, "TOPLEFT", 10, -10)
+
+        local importBox = CreateFrame("EditBox", nil, scrollFrame)
+        importBox:SetMultiLine(true)
+        importBox:SetSize(270, 210)
+        importBox:SetAutoFocus(false)
+        importBox:SetFontObject("ChatFontNormal")
+        importBox:SetText("")
+        importBox:SetMaxLetters(10000)
+        importBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+        importBox:SetScript("OnTabPressed", function(self) self:Insert("    ") end)
+        importBox:SetScript("OnCursorChanged", function(self, x, y, w, h) scrollFrame:UpdateScrollChildRect() end)
+        importBox:SetScript("OnTextChanged", function(self) scrollFrame:UpdateScrollChildRect() end)
+        importBox:SetScript("OnEditFocusGained", function(self) scrollFrame:UpdateScrollChildRect() end)
+        importBox:SetScript("OnEditFocusLost", function(self) scrollFrame:UpdateScrollChildRect() end)
+        importBox:SetJustifyH("LEFT")
+        importBox:SetJustifyV("TOP")
+        importBox:SetMovable(false)
+        importBox:SetClampedToScreen(true)
+        scrollFrame:SetScrollChild(importBox)
+        WishListSettingsFrame.importBox = importBox
+        WishListSettingsFrame.importScrollFrame = scrollFrame
+    end
+
+    if not WishListSettingsFrame.importBtn then
+        -- Add Import button under the text box
+        local importBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
+        importBtn:SetSize(120, 28)
+        importBtn:SetPoint("TOP", WishListSettingsFrame, "BOTTOM", 0, 100)
+        importBtn:SetText("Import")
+        importBtn:SetScript("OnClick", function()
+            local text = WishListSettingsFrame.importBox:GetText()
+            WishListImportFromJSON(text)
+            WishListSettingsFrame.importBox:SetText("")  -- Clear the box after import
+        end)
+        WishListSettingsFrame.importBtn = importBtn
+    end
+
+    -- Add import text box and button lower in the settings window
+    if not WishListSettingsFrame.printBtn then
+        -- Кнопка "Распечатать таблицу"
+        local printBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
+        printBtn:SetSize(160, 28)
+        printBtn:SetPoint("TOP", WishListSettingsFrame, "BOTTOM", 0, 50)
+        printBtn:SetText("Распечатать таблицу")
+        printBtn:SetScript("OnClick", function()
+            local gearList = WishListDB.gearList or nil
+            if gearList and gearList.Print then
+                gearList:Print()
+            else
+                print("|cffff0000[WishList]|r No gear list available to print.")
+            end
+        end)
+        WishListSettingsFrame.printBtn = printBtn
+    end
 
     WishListSettingsFrame:SetFrameStrata("DIALOG")
     WishListSettingsFrame:SetFrameLevel(5)

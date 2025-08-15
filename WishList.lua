@@ -1,15 +1,21 @@
--- addon.lua
+-- WishList.lua
+-- init file for the WishList addon
+
 WishListAddon = LibStub("AceAddon-3.0"):NewAddon("WishList")
 
 function WishListAddon:OnInitialize()
     -- Создаём базу данных для хранения настроек
-    self.db = LibStub("AceDB-3.0"):New("WishListDB", { char = {} }, true)
+    WishListDB = WishListDB or {}
+    LoadWishListFromDB()
 
     -- Название и версия аддона
     self.AddonNameAndVersion = "|cff00ff00[WishList]|r v" .. (WISHLIST_VERSION or "?.?.?")
 
     -- Добавляем иконку на мини-карту
     self:AddMapIcon()
+
+    -- Load WishList from a file
+    -- self:LoadWishList()
 
     print(self.AddonNameAndVersion .. " initialized.")
 end
@@ -39,7 +45,7 @@ function WishListAddon:AddMapIcon()
 
     if LDBIcon then
         -- Передаём таблицу настроек персонажа для хранения позиции иконки
-        LDBIcon:Register("WishListIcon", dataObj, self.db.char)
+        LDBIcon:Register("WishListIcon", dataObj, WishListDB.char)
     end
 end
 
@@ -56,7 +62,6 @@ function WishListAddon:ToggleMainFrame()
     end
 end
 
-
 function WishListAddon:ToggleSettingsFrame()
     if not self.SettingsFrame then
         self:CreateSettingsFrame()
@@ -67,5 +72,25 @@ function WishListAddon:ToggleSettingsFrame()
         else
             self.SettingsFrame:Show()
         end
+    end
+end
+
+function WishListAddon:LoadWishList()
+    local json = require("lib.json")
+    local json_text = read_file("wishlist.json") -- replace with your actual filename
+
+    if not json_text or json_text == "" then
+        print("|cffff0000[WishList]|r Error: wishlist.json is empty or missing.")
+        return
+    end
+
+    local success, err = pcall(function()
+        WishListImportFromJSON(json_text)
+    end)
+
+    if not success then
+        print("|cffff0000[WishList]|r Error importing wishlist: " .. tostring(err))
+    else
+        print("|cff00ff00[WishList]|r Wishlist loaded successfully.")
     end
 end
