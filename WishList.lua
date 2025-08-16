@@ -4,9 +4,9 @@
 WishListAddon = LibStub("AceAddon-3.0"):NewAddon("WishList")
 
 function WishListAddon:OnInitialize()
+
     -- Создаём базу данных для хранения настроек
     WishListDB = WishListDB or {}
-    LoadWishListFromDB()
 
     -- Название и версия аддона
     self.AddonNameAndVersion = "|cff00ff00[WishList]|r v" .. (WISHLIST_VERSION or "?.?.?")
@@ -15,7 +15,7 @@ function WishListAddon:OnInitialize()
     self:AddMapIcon()
 
     -- Load WishList from a file
-    -- self:LoadWishList()
+    WishListClass:BuildLists()
 
     print(self.AddonNameAndVersion .. " initialized.")
 end
@@ -75,22 +75,52 @@ function WishListAddon:ToggleSettingsFrame()
     end
 end
 
-function WishListAddon:LoadWishList()
-    local json = require("lib.json")
-    local json_text = read_file("wishlist.json") -- replace with your actual filename
+-- Create your extra tooltip once
 
-    if not json_text or json_text == "" then
-        print("|cffff0000[WishList]|r Error: wishlist.json is empty or missing.")
-        return
-    end
-
-    local success, err = pcall(function()
-        WishListImportFromJSON(json_text)
-    end)
-
-    if not success then
-        print("|cffff0000[WishList]|r Error importing wishlist: " .. tostring(err))
-    else
-        print("|cff00ff00[WishList]|r Wishlist loaded successfully.")
-    end
+if not WishListExtraTooltip then
+    WishListExtraTooltip = CreateFrame("GameTooltip", "WishListExtraTooltip", UIParent, "GameTooltipTemplate")
 end
+
+GameTooltip:HookScript("OnTooltipSetItem", function(self)
+    local name, link = self:GetItem()
+    if link then
+        local itemID = tonumber(link:match("item:(%d+)"))
+        if itemID and WishListClass and WishListClass.GetOrderedPlayersByItemId then
+            local players = WishListClass:GetOrderedPlayersByItemId(tostring(itemID))
+            if players and #players > 0 then
+                local truePlayers, falsePlayers = {}, {}
+                for _, entry in ipairs(players) do
+                    local player, has = entry[1], entry[2]
+                    if has then
+                        table.insert(truePlayers, player)
+                    else
+                        table.insert(falsePlayers, player)
+                    end
+                end
+                if #truePlayers > 0 or #falsePlayers > 0 then
+                    WishListExtraTooltip:SetOwner(GameTooltip, "ANCHOR_NONE")
+                    WishListExtraTooltip:ClearAllPoints()
+                    WishListExtraTooltip:SetPoint("TOPLEFT", GameTooltip, "TOPRIGHT", 0, 0)
+                    WishListExtraTooltip:ClearLines()
+                    WishListExtraTooltip:AddLine("BiS for :")
+                    for _, player in ipairs(truePlayers) do
+                        WishListExtraTooltip:AddLine("|cff00ff00"..player.."|r")
+                    end
+                    if #falsePlayers > 0 then
+                        WishListExtraTooltip:AddLine("|cffffff00"..falsePlayers[1].."|r")
+                        for i = 2, #falsePlayers do
+                            WishListExtraTooltip:AddLine("|cff888888"..falsePlayers[i].."|r")
+                        end
+                    end
+                    WishListExtraTooltip:Show()
+                    return
+                end
+            end
+        end
+    end
+    WishListExtraTooltip:Hide()
+end)
+
+GameTooltip:HookScript("OnHide", function()
+    if WishListExtraTooltip then WishListExtraTooltip:Hide() end
+end)

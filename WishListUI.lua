@@ -1,4 +1,18 @@
 -- WishListUI.lua
+local function getIcon(slotName)
+    -- Set item icon for slots if present in personal wishlist
+    if WishListDB and WishListDB.personalWishList then
+            local itemID = WishListDB.personalWishList[slotName:lower():gsub("slot$", "")]
+            if itemID then
+                local icon = GetItemIcon(itemID)
+                if icon then
+                    return icon
+                else
+                    return nil
+                end
+            end
+    end
+end
 
 function WishListAddon:CreateMainFrame()
     local WishListFrame = CreateFrame("Frame", "WishListFrame", UIParent, "BasicFrameTemplateWithInset")
@@ -34,30 +48,29 @@ function WishListAddon:CreateMainFrame()
     model:SetUnit("player")
     WishListFrame.model = model
 
-     -- Gear slot positions (adjusted)
-
+    -- Gear slot positions (adjusted)
     local slots = {
         -- Left slots
-        {name = "HeadSlot", x = 30, y = -50, label = "Head"},
-        {name = "NeckSlot", x = 30, y = -90, label = "Neck"},
-        {name = "ShoulderSlot", x = 30, y = -130, label = "Shoulder"},
-        {name = "BackSlot", x = 30, y = -170, label = "Back"},
-        {name = "ChestSlot", x = 30, y = -210, label = "Chest"},
-        {name = "ShirtSlot", x = 30, y = -250, label = "Shirt"},
-        {name = "TabardSlot", x = 30, y = -290, label = "Tabard"},
-        {name = "WristSlot", x = 30, y = -330, label = "Wrist"},
+        {name = "HEAD", x = 30, y = -50, label = "Head"},
+        {name = "NECK", x = 30, y = -90, label = "Neck"},
+        {name = "SHOULDER", x = 30, y = -130, label = "Shoulder"},
+        {name = "BACK", x = 30, y = -170, label = "Back"},
+        {name = "CHEST", x = 30, y = -210, label = "Chest"},
+        {name = "SHIRT", x = 30, y = -250, label = "Shirt"},
+        {name = "TABARD", x = 30, y = -290, label = "Tabard"},
+        {name = "WRIST", x = 30, y = -330, label = "Wrist"},
         -- Right slots
-        {name = "HandsSlot", x = 270, y = -50, label = "Hands"},
-        {name = "WaistSlot", x = 270, y = -90, label = "Waist"},
-        {name = "LegsSlot", x = 270, y = -130, label = "Legs"},
-        {name = "FeetSlot", x = 270, y = -170, label = "Feet"},
-        {name = "Finger0Slot", x = 270, y = -210, label = "Finger 1"},
-        {name = "Finger1Slot", x = 270, y = -250, label = "Finger 2"},
-        {name = "Trinket0Slot", x = 270, y = -290, label = "Trinket 1"},
-        {name = "Trinket1Slot", x = 270, y = -330, label = "Trinket 2"},
+        {name = "HANDS", x = 270, y = -50, label = "Hands"},
+        {name = "WAIST", x = 270, y = -90, label = "Waist"},
+        {name = "LEGS", x = 270, y = -130, label = "Legs"},
+        {name = "FEET", x = 270, y = -170, label = "Feet"},
+        {name = "FINGER1", x = 270, y = -210, label = "Finger 1"},
+        {name = "FINGER2", x = 270, y = -250, label = "Finger 2"},
+        {name = "TRINKET1", x = 270, y = -290, label = "Trinket 1"},
+        {name = "TRINKET2", x = 270, y = -330, label = "Trinket 2"},
         -- Main/Off hand slots 
-        {name = "MainHandSlot", x = 130, y = -370, label = "Main Hand"},
-        {name = "SecondaryHandSlot", x = 172, y = -370, label = "Off Hand"},
+        {name = "MAINHAND", x = 130, y = -370, label = "Main Hand"},
+        {name = "OFFHAND", x = 172, y = -370, label = "Off Hand"},
     }
 
     WishListFrame.slots = {}
@@ -65,12 +78,34 @@ function WishListAddon:CreateMainFrame()
         local btn = CreateFrame("Button", nil, WishListFrame, "ItemButtonTemplate")
         btn:SetSize(36, 36)
         btn:SetPoint("TOPLEFT", WishListFrame, "TOPLEFT", slot.x, slot.y)
-        btn.icon:SetTexture(nil)
         btn.slotName = slot.name
         btn.slotLabel = slot.label
+
+        -- Получаем itemId для этого слота из WishListDB.personalwishlist
+        local slotKey = slot.name:lower()
+        local itemData = WishListDB.personalwishlist and WishListDB.personalwishlist[slotKey]
+        local itemID = itemData and itemData.itemId
+
+        -- Устанавливаем иконку если есть itemID
+        if itemID then
+            local icon = GetItemIcon(itemID)
+            if icon then
+                btn.icon:SetTexture(icon)
+            else
+                btn.icon:SetTexture(nil)
+            end
+        else
+            btn.icon:SetTexture(nil)
+        end
+
         btn:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText(self.slotLabel, 1,1,1)
+            -- Показываем itemID и список игроков для этого предмета
+            local itemData = WishListDB.personalwishlist and WishListDB.personalwishlist[slotKey]
+            if itemData and itemData.itemId then
+                GameTooltip:SetItemByID(itemData.itemId)
+            end
             GameTooltip:Show()
         end)
         btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -98,80 +133,6 @@ function WishListAddon:CreateSettingsFrame()
     WishListSettingsFrame:SetScript("OnDragStart", WishListSettingsFrame.StartMoving)
     WishListSettingsFrame:SetScript("OnDragStop", WishListSettingsFrame.StopMovingOrSizing)
 
-    if not WishListSettingsFrame.importBox then
-        -- Add a ScrollFrame to contain the EditBox
-        -- Create a background frame for visibility
-        local bg = CreateFrame("Frame", nil, WishListSettingsFrame, BackdropTemplateMixin and "BackdropTemplate")
-        bg:SetSize(310, 230)
-        bg:SetPoint("TOP", WishListSettingsFrame, "TOP", 0, -36)
-        bg:SetFrameLevel(WishListSettingsFrame:GetFrameLevel() + 1)
-        bg:SetBackdrop({
-            bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-            edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
-            edgeSize = 16,
-            insets = { left = 4, right = 4, top = 4, bottom = 4 },
-        })
-        bg:SetBackdropColor(1, 1, 0.85, 0.95) -- light yellowish background
-        bg:SetBackdropBorderColor(0.8, 0.5, 0, 1) -- orange border
-
-        local scrollFrame = CreateFrame("ScrollFrame", nil, bg, "UIPanelScrollFrameTemplate")
-        scrollFrame:SetSize(290, 210)
-        scrollFrame:SetPoint("TOPLEFT", bg, "TOPLEFT", 10, -10)
-
-        local importBox = CreateFrame("EditBox", nil, scrollFrame)
-        importBox:SetMultiLine(true)
-        importBox:SetSize(270, 210)
-        importBox:SetAutoFocus(false)
-        importBox:SetFontObject("ChatFontNormal")
-        importBox:SetText("")
-        importBox:SetMaxLetters(10000)
-        importBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-        importBox:SetScript("OnTabPressed", function(self) self:Insert("    ") end)
-        importBox:SetScript("OnCursorChanged", function(self, x, y, w, h) scrollFrame:UpdateScrollChildRect() end)
-        importBox:SetScript("OnTextChanged", function(self) scrollFrame:UpdateScrollChildRect() end)
-        importBox:SetScript("OnEditFocusGained", function(self) scrollFrame:UpdateScrollChildRect() end)
-        importBox:SetScript("OnEditFocusLost", function(self) scrollFrame:UpdateScrollChildRect() end)
-        importBox:SetJustifyH("LEFT")
-        importBox:SetJustifyV("TOP")
-        importBox:SetMovable(false)
-        importBox:SetClampedToScreen(true)
-        scrollFrame:SetScrollChild(importBox)
-        WishListSettingsFrame.importBox = importBox
-        WishListSettingsFrame.importScrollFrame = scrollFrame
-    end
-
-    if not WishListSettingsFrame.importBtn then
-        -- Add Import button under the text box
-        local importBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
-        importBtn:SetSize(120, 28)
-        importBtn:SetPoint("TOP", WishListSettingsFrame, "BOTTOM", 0, 100)
-        importBtn:SetText("Import")
-        importBtn:SetScript("OnClick", function()
-            local text = WishListSettingsFrame.importBox:GetText()
-            WishListImportFromJSON(text)
-            WishListSettingsFrame.importBox:SetText("")  -- Clear the box after import
-        end)
-        WishListSettingsFrame.importBtn = importBtn
-    end
-
-    -- Add import text box and button lower in the settings window
-    if not WishListSettingsFrame.printBtn then
-        -- Кнопка "Распечатать таблицу"
-        local printBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
-        printBtn:SetSize(160, 28)
-        printBtn:SetPoint("TOP", WishListSettingsFrame, "BOTTOM", 0, 50)
-        printBtn:SetText("Распечатать таблицу")
-        printBtn:SetScript("OnClick", function()
-            local gearList = WishListDB.gearList or nil
-            if gearList and gearList.Print then
-                gearList:Print()
-            else
-                print("|cffff0000[WishList]|r No gear list available to print.")
-            end
-        end)
-        WishListSettingsFrame.printBtn = printBtn
-    end
-
     WishListSettingsFrame:SetFrameStrata("DIALOG")
     WishListSettingsFrame:SetFrameLevel(5)
 
@@ -187,6 +148,42 @@ function WishListAddon:CreateSettingsFrame()
         WishListSettingsFrame:SetFrameLevel(10)
         if self.MainFrame then
             self.MainFrame:SetFrameLevel(5)
+        end
+    end)
+
+    -- Кнопка: Reload WishList
+    local reloadBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
+    reloadBtn:SetSize(100, 30)
+    reloadBtn:SetPoint("BOTTOMLEFT", WishListSettingsFrame, "BOTTOMLEFT", 20, 20)
+    reloadBtn:SetText("Reload WishList")
+    reloadBtn:SetScript("OnClick", function()
+        WishListClass:BuildLists(true)
+        print("WishList reloaded.")
+    end)
+
+    -- Кнопка: Print WishList (personal)
+    local printPersonalBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
+    printPersonalBtn:SetSize(100, 30)
+    printPersonalBtn:SetPoint("BOTTOM", WishListSettingsFrame, "BOTTOM", 0, 20)
+    printPersonalBtn:SetText("Print WishList")
+    printPersonalBtn:SetScript("OnClick", function()
+        if WishListDB and WishListDB.gearList then
+            WishListClass:PrintPersonalWishlist()
+        else
+            print("WishListDB.gearList not found.")
+        end
+    end)
+
+    -- Кнопка: Print All Items
+    local printAllBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
+    printAllBtn:SetSize(100, 30)
+    printAllBtn:SetPoint("BOTTOMRIGHT", WishListSettingsFrame, "BOTTOMRIGHT", -20, 20)
+    printAllBtn:SetText("Print All Items")
+    printAllBtn:SetScript("OnClick", function()
+        if WishListDB and WishListDB.gearList then
+            WishListClass:PrintItems()
+        else
+            print("WishListDB.gearList not found.")
         end
     end)
 

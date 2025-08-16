@@ -10,6 +10,20 @@ local function read_file(filename)
     return content
 end
 
+-- returns dumpped table
+local function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
 -- local json_text = read_file("wishlist.json") -- replace with your actual filename
 local json_text = [[
 {
@@ -35,9 +49,9 @@ local json_text = [[
 			},
 			"neck":{
 				"some neck":{
-					"itemID":"123",
+					"itemID":"86953",
 					"players":[
-						{"Джуниеса":false},
+						{"Джуниеса":true},
 						{"Мбх":false},
 						{"Пивнойпанд":false}
 					]
@@ -51,7 +65,7 @@ local json_text = [[
 ]]
 
 local function test_json(jsonText)
-    local obj = WishListClass.FromJSON(jsonText)
+    local obj = WishListClass.FromJSON(jsonText) or {}
     obj:Print()
     -- print(dump(obj))
 end

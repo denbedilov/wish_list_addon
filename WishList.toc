@@ -10,9 +10,11 @@ lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
 lib\LibDBIcon-1.0\LibDBIcon-1.0.lua
 lib\LibStub\LibStub.lua
 lib\json.lua
+wishlistdata.lua
+
 
 WishListClass.lua
 WishListVersion.lua
+WishListLogic.lua
 WishList.lua
 WishListUI.lua
-WishListLogic.lua
