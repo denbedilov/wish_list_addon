@@ -8,9 +8,12 @@ This is a minimal World of Warcraft addon to help you with your Best in Slot Wis
 3. Enable the addon in the AddOns menu.
 
 ## Screenshots
-1. Addon Window 
+1. Addon Window
+
 ![alt text](lib/Screenshots/Screenshot_1.png)
+
 2. Item tooltip
+
 ![alt text](lib/Screenshots/Screenshot_2.png)
 
 ## wishlistdata schema
