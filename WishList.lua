@@ -5,17 +5,18 @@ WishListAddon = LibStub("AceAddon-3.0"):NewAddon("WishList")
 
 function WishListAddon:OnInitialize()
 
-    -- Создаём базу данных для хранения настроек
+    -- Create a database for storing settings
     WishListDB = WishListDB or {}
+    WishListDB.char = WishListDB.char or {}
 
-    -- Название и версия аддона
+    -- Addon name and version
     self.AddonNameAndVersion = "|cff00ff00[WishList]|r v" .. (WISHLIST_VERSION or "?.?.?")
 
-    -- Добавляем иконку на мини-карту
+    -- Add icon to the minimap
     self:AddMapIcon()
 
-    -- Load WishList from a file
-    WishListClass:BuildLists()
+    -- Use the new update function instead of BuildLists directly
+    -- self:UpdateWishList()
 
     print(self.AddonNameAndVersion .. " initialized.")
 end
@@ -44,7 +45,7 @@ function WishListAddon:AddMapIcon()
     })
 
     if LDBIcon then
-        -- Передаём таблицу настроек персонажа для хранения позиции иконки
+        -- Pass the character settings table to store the icon position
         LDBIcon:Register("WishListIcon", dataObj, WishListDB.char)
     end
 end
@@ -76,7 +77,6 @@ function WishListAddon:ToggleSettingsFrame()
 end
 
 -- Create your extra tooltip once
-
 if not WishListExtraTooltip then
     WishListExtraTooltip = CreateFrame("GameTooltip", "WishListExtraTooltip", UIParent, "GameTooltipTemplate")
 end
@@ -89,6 +89,12 @@ GameTooltip:HookScript("OnTooltipSetItem", function(self)
             local players = WishListClass:GetOrderedPlayersByItemId(tostring(itemID))
             if players and #players > 0 then
                 local truePlayers, falsePlayers = {}, {}
+                -- Get red cards list from WishListDB
+                local redCards = WishListDB and WishListDB.redCards or {}
+                local isRed = {}
+                for _, rc in ipairs(redCards) do
+                    isRed[rc] = true
+                end
                 for _, entry in ipairs(players) do
                     local player, has = entry[1], entry[2]
                     if has then
@@ -104,12 +110,24 @@ GameTooltip:HookScript("OnTooltipSetItem", function(self)
                     WishListExtraTooltip:ClearLines()
                     WishListExtraTooltip:AddLine("BiS for :")
                     for _, player in ipairs(truePlayers) do
-                        WishListExtraTooltip:AddLine("|cff00ff00"..player.."|r")
+                        if isRed[player] then
+                            WishListExtraTooltip:AddLine("|cffff0000"..player.."|r")
+                        else
+                            WishListExtraTooltip:AddLine("|cff00ff00"..player.."|r")
+                        end
                     end
                     if #falsePlayers > 0 then
-                        WishListExtraTooltip:AddLine("|cffffff00"..falsePlayers[1].."|r")
+                        if isRed[falsePlayers[1]] then
+                            WishListExtraTooltip:AddLine("|cffff0000"..falsePlayers[1].."|r")
+                        else
+                            WishListExtraTooltip:AddLine("|cffffff00"..falsePlayers[1].."|r")
+                        end
                         for i = 2, #falsePlayers do
-                            WishListExtraTooltip:AddLine("|cff888888"..falsePlayers[i].."|r")
+                            if isRed[falsePlayers[i]] then
+                                WishListExtraTooltip:AddLine("|cffff0000"..falsePlayers[i].."|r")
+                            else
+                                WishListExtraTooltip:AddLine("|cff888888"..falsePlayers[i].."|r")
+                            end
                         end
                     end
                     WishListExtraTooltip:Show()
@@ -124,3 +142,34 @@ end)
 GameTooltip:HookScript("OnHide", function()
     if WishListExtraTooltip then WishListExtraTooltip:Hide() end
 end)
+
+-- Function to update WishList data
+function WishListAddon:UpdateWishList()
+    -- Check if wishlistdata (Items) is not empty
+    if Items and next(Items) then
+        -- Data exists, just build lists from it
+        if WishListClass and WishListClass.BuildLists then
+            WishListClass:BuildLists(true)
+            print("|cff00ff00[WishList]|r Wishlist loaded from file.")
+        end
+    else
+        -- Data is empty, try to update from communication
+        if WishListCommunication and WishListCommunication.isWishListUpdatable and WishListCommunication:isWishListUpdatable() then
+            print("|cff00ff00[WishList]|r Requested wishlist update from other players.")
+            WishListCommunication:UpdateWishList()
+        else
+            -- Fallback: build lists from local data
+            if WishListClass and WishListClass.BuildLists then
+                WishListClass:BuildLists(false)
+                print("|cff00ff00[WishList]|r Wishlist loaded from local DataBase.")
+            end
+        end
+    end
+end
+
+-- Register a slash command to open the main window
+SLASH_WISHLIST1 = "/wishlist"
+SLASH_WISHLIST2 = "/wl"
+SlashCmdList["WISHLIST"] = function(msg)
+    WishListAddon:ToggleMainFrame()
+end

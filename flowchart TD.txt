@@ -1,0 +1,63 @@
+flowchart TD
+    A[WoW Loads Addon] --> B[WishList.lua (Main Entry)]
+    B --> C[OnInitialize]
+    C --> D[Check/Load WishListDB]
+    C --> E[Add Minimap Icon]
+    C --> F[UpdateWishList]
+    F --> G{Items Table Exists?}
+    G -- Yes --> H[WishListClass:BuildLists]
+    G -- No --> I{Can Update via Communication?}
+    I -- Yes --> J[WishListCommunication:isWishListUpdatable]
+    J --> K[Send distributed count to guild]
+    K --> L[Receive distributed from others]
+    L --> M{Other distributed > local?}
+    M -- Yes --> N[Request full wishlist from sender]
+    N --> O[Receive wishlist data]
+    O --> P{Received distributed > local?}
+    P -- Yes --> Q[Update WishListDB, BuildLists]
+    P -- No --> R[Ignore]
+    M -- No --> R
+    I -- No --> S[BuildLists with empty data]
+
+    %% UI Interactions
+    B --> T[Register /wishlist and /wlall commands]
+    T --> U[User types /wishlist]
+    U --> V[Show Main Window]
+    T --> W[User types /wlall]
+    W --> X[Show All Window with Player Dropdown]
+
+    %% Tooltip
+    B --> Y[Hook Tooltip]
+    Y --> Z[Show BiS info, green V, red cards]
+
+    %% Data Structure
+    subgraph Data
+        D
+        H
+        Q
+        S
+    end
+
+    %% Communication
+    subgraph Communication
+        J
+        K
+        L
+        M
+        N
+        O
+        P
+        Q
+        R
+    end
+
+    %% UI
+    subgraph UI
+        T
+        U
+        V
+        W
+        X
+        Y
+        Z
+    end

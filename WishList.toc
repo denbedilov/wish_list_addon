@@ -2,7 +2,7 @@
 ## Title: WishList
 ## Notes: Simple WishList addon
 ## Author: YourName
-## Version: 1.0.0
+## Version: 1.1.0
 ## SavedVariables: WishListDB
 
 
@@ -16,5 +16,6 @@ wishlistdata.lua
 WishListClass.lua
 WishListVersion.lua
 WishListLogic.lua
+WishListCommunication.lua
 WishList.lua
 WishListUI.lua
