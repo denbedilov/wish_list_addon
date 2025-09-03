@@ -162,7 +162,6 @@ function WishListAddon:CreateSettingsFrame()
         "Print WishList",
         "Print All Items",
         "Reload WishList from file",
-        "Clear WishList",
         "Get WishList from Guild"
     }
     local maxWidth = 0
@@ -177,10 +176,20 @@ function WishListAddon:CreateSettingsFrame()
     local startY = -60
     local spacing = -8
 
+    -- Button: Show All WishList
+    local showAllBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
+    showAllBtn:SetSize(maxWidth, buttonHeight)
+    showAllBtn:SetPoint("TOP", WishListSettingsFrame, "TOP", 0, startY)
+    showAllBtn:SetText("Show All WishList")
+    showAllBtn:SetScript("OnClick", function()
+        WishListAddon:ToggleShowAllFrame()
+        WishListSettingsFrame:Hide()
+    end)
+
     -- Button: Print WishList (personal)
     local printPersonalBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
     printPersonalBtn:SetSize(maxWidth, buttonHeight)
-    printPersonalBtn:SetPoint("TOP", WishListSettingsFrame, "TOP", 0, startY)
+    printPersonalBtn:SetPoint("TOP", showAllBtn, "BOTTOM", 0, spacing)
     printPersonalBtn:SetText("Print WishList")
     printPersonalBtn:SetScript("OnClick", function()
         if WishListClass and WishListClass.PrintPersonalWishlist then
@@ -215,23 +224,10 @@ function WishListAddon:CreateSettingsFrame()
         end
     end)
 
-    -- Button: Clear WishList
-    local clearBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
-    clearBtn:SetSize(maxWidth, buttonHeight)
-    clearBtn:SetPoint("TOP", reloadBtn, "BOTTOM", 0, spacing)
-    clearBtn:SetText("Clear WishList")
-    clearBtn:SetScript("OnClick", function()
-        WishListDB.items = nil
-        WishListDB.personalwishlist = nil
-        WishListDB.redCards = nil
-        WishListDB.distributed = nil
-        print("WishList cleared.")
-    end)
-
     -- Button: Get WishList from Guild
     local getGuildBtn = CreateFrame("Button", nil, WishListSettingsFrame, "UIPanelButtonTemplate")
     getGuildBtn:SetSize(maxWidth, buttonHeight)
-    getGuildBtn:SetPoint("TOP", clearBtn, "BOTTOM", 0, spacing)
+    getGuildBtn:SetPoint("TOP", reloadBtn, "BOTTOM", 0, spacing)
     getGuildBtn:SetText("Get WishList from Guild")
     getGuildBtn:SetScript("OnClick", function()
         if WishListCommunication and WishListCommunication.isWishListUpdatable then
@@ -362,13 +358,32 @@ function WishListAddon:CreateShowAllFrame()
         end
     end
 
+    -- Green border logic (draw only border, not full background)
+    local function SetGreenBorder(btn, show)
+        if not btn.greenBorder then
+            btn.greenBorder = CreateFrame("Frame", nil, btn, "BackdropTemplate")
+            btn.greenBorder:SetAllPoints(btn)
+            btn.greenBorder:SetFrameLevel(btn:GetFrameLevel() + 10)
+            btn.greenBorder:SetBackdrop({
+                edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 3,
+            })
+            btn.greenBorder:SetBackdropBorderColor(0, 1, 0, 1)
+            btn.greenBorder:Hide()
+        end
+        if show then
+            btn.greenBorder:Show()
+        else
+            btn.greenBorder:Hide()
+        end
+    end
+
     -- Fill slots for selected player
     function ShowAllFrame:UpdateSlots(player)
-        print("Updating slots for player:", player)
         -- Clear all slots
         for _, btn in pairs(self.slots) do
             btn.icon:SetTexture(nil)
             if btn.vMark then btn.vMark:Hide() end
+            if btn.greenBorder then btn.greenBorder:Hide() end
             btn:SetScript("OnEnter", nil)
             btn:SetScript("OnLeave", nil)
         end
@@ -395,13 +410,8 @@ function WishListAddon:CreateShowAllFrame()
                                     for _, e in ipairs(playerArr) do
                                         if e[1] == player and e[2] then hasItem = true break end
                                     end
-                                    if not btn.vMark then
-                                        btn.vMark = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-                                        btn.vMark:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", -2, 2)
-                                        btn.vMark:SetText("|cff00ff00V|r")
-                                        btn.vMark:Hide()
-                                    end
-                                    if hasItem then btn.vMark:Show() else btn.vMark:Hide() end
+                                    -- Green border logic
+                                    SetGreenBorder(btn, hasItem)
                                     btn:SetScript("OnEnter", function(self)
                                         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
                                         GameTooltip:SetItemByID(itemId)
@@ -439,13 +449,8 @@ function WishListAddon:CreateShowAllFrame()
                     for _, e in ipairs(entry.players) do
                         if e[1] == player and e[2] then hasItem = true break end
                     end
-                    if not btn.vMark then
-                        btn.vMark = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-                        btn.vMark:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", -2, 2)
-                        btn.vMark:SetText("|cff00ff00V|r")
-                        btn.vMark:Hide()
-                    end
-                    if hasItem then btn.vMark:Show() else btn.vMark:Hide() end
+                    -- Green border logic
+                    SetGreenBorder(btn, hasItem)
                     btn:SetScript("OnEnter", function(self)
                         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
                         GameTooltip:SetItemByID(entry.itemId)

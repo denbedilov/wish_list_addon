@@ -16,9 +16,9 @@ function WishListClass:BuildLists(force)
         return
     end
 
-    -- Always build from file (Items/Red_cards)
+    -- Always build from file (Items/RedCards)
     local itemsSource = Items or (wishlistdata and wishlistdata.Items)
-    local redCardsSource = Red_cards or (wishlistdata and wishlistdata.Red_cards)
+    local redCardsSource = RedCards or (wishlistdata and wishlistdata.RedCards)
 
     WishListDB.items = nil
     WishListDB.personalwishlist = nil
