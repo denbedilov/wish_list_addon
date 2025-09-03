@@ -343,40 +343,6 @@ function WishListAddon:CreateShowAllFrame()
         ShowAllFrame.slots[slot.name] = btn
     end
 
-    -- Helper for green V mark
-    local function SetGreenVMark(btn, show)
-        if not btn.vMark then
-            btn.vMark = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-            btn.vMark:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", -2, 2)
-            btn.vMark:SetText("|cff00ff00V|r")
-            btn.vMark:Hide()
-        end
-        if show then
-            btn.vMark:Show()
-        else
-            btn.vMark:Hide()
-        end
-    end
-
-    -- Green border logic (draw only border, not full background)
-    local function SetGreenBorder(btn, show)
-        if not btn.greenBorder then
-            btn.greenBorder = CreateFrame("Frame", nil, btn, "BackdropTemplate")
-            btn.greenBorder:SetAllPoints(btn)
-            btn.greenBorder:SetFrameLevel(btn:GetFrameLevel() + 10)
-            btn.greenBorder:SetBackdrop({
-                edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 3,
-            })
-            btn.greenBorder:SetBackdropBorderColor(0, 1, 0, 1)
-            btn.greenBorder:Hide()
-        end
-        if show then
-            btn.greenBorder:Show()
-        else
-            btn.greenBorder:Hide()
-        end
-    end
-
     -- Fill slots for selected player
     function ShowAllFrame:UpdateSlots(player)
         -- Clear all slots
@@ -411,7 +377,18 @@ function WishListAddon:CreateShowAllFrame()
                                         if e[1] == player and e[2] then hasItem = true break end
                                     end
                                     -- Green border logic
-                                    SetGreenBorder(btn, hasItem)
+                                    if not btn.greenBorder then
+                                        btn.greenBorder = btn:CreateTexture(nil, "OVERLAY")
+                                        btn.greenBorder:SetAllPoints(btn)
+                                        btn.greenBorder:SetColorTexture(0, 1, 0, 0.3)
+                                        btn.greenBorder:SetBlendMode("ADD")
+                                        btn.greenBorder:Hide()
+                                    end
+                                    if hasItem then
+                                        btn.greenBorder:Show()
+                                    else
+                                        btn.greenBorder:Hide()
+                                    end
                                     btn:SetScript("OnEnter", function(self)
                                         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
                                         GameTooltip:SetItemByID(itemId)
@@ -450,7 +427,18 @@ function WishListAddon:CreateShowAllFrame()
                         if e[1] == player and e[2] then hasItem = true break end
                     end
                     -- Green border logic
-                    SetGreenBorder(btn, hasItem)
+                    if not btn.greenBorder then
+                        btn.greenBorder = btn:CreateTexture(nil, "OVERLAY")
+                        btn.greenBorder:SetAllPoints(btn)
+                        btn.greenBorder:SetColorTexture(0, 1, 0, 0.6)
+                        btn.greenBorder:SetBlendMode("ADD")
+                        btn.greenBorder:Hide()
+                    end
+                    if hasItem then
+                        btn.greenBorder:Show()
+                    else
+                        btn.greenBorder:Hide()
+                    end
                     btn:SetScript("OnEnter", function(self)
                         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
                         GameTooltip:SetItemByID(entry.itemId)
